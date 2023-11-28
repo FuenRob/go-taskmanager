@@ -8,9 +8,10 @@ import (
 	"taskmanager/utils"
 
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
-func Execute() {
+func Execute(db *gorm.DB) {
 
 	var cmdAdd = &cobra.Command{
 		Use:   "add [string]",
@@ -21,7 +22,7 @@ func Execute() {
 			var task = tasks.Task{
 				Name: strings.Join(args, " "),
 			}
-			newTask := tasks.Add(task)
+			newTask := tasks.Add(db, task)
 
 			fmt.Printf(`Tarea creada con éxito: %s(%d)`, newTask.Name, task.ID)
 
@@ -33,8 +34,10 @@ func Execute() {
 		Short: "Command to list all tasks",
 		Long:  `This command list all tasks.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(tasks.GetAll())
-
+			tasksList := tasks.GetAll(db)
+			for i := 0; i < len(tasksList); i++ {
+				fmt.Printf("%d - %s (%t)\n", tasksList[i].ID, tasksList[i].Name, tasksList[i].Completed)
+			}
 		},
 	}
 
@@ -45,7 +48,8 @@ func Execute() {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			id := utils.ParseInt(args[0])
-			fmt.Println(tasks.GetByID(id))
+			task := tasks.GetByID(db, id)
+			fmt.Printf("ID: %d \nNombre: %s \nDescripción: %s \nEstado: %t \n", task.ID, task.Name, task.Description, task.Completed)
 
 		},
 	}
@@ -58,7 +62,7 @@ func Execute() {
 		Run: func(cmd *cobra.Command, args []string) {
 			id := utils.ParseInt(args[0])
 
-			var tasksEdited = tasks.GetByID(id)
+			var tasksEdited = tasks.GetByID(db, id)
 
 			if args[1] == "name" {
 				tasksEdited.Name = args[2]
@@ -68,7 +72,9 @@ func Execute() {
 				panic("Invalid argument")
 			}
 
-			fmt.Println(tasks.UpdateByID(id, *tasksEdited))
+			task := tasks.UpdateByID(db, id, *tasksEdited)
+
+			fmt.Printf("Actualización realizada con éxito \n\nID: %d \nNombre: %s \nDescripción: %s \nEstado: %t \n", task.ID, task.Name, task.Description, task.Completed)
 
 		},
 	}
@@ -81,11 +87,13 @@ func Execute() {
 		Run: func(cmd *cobra.Command, args []string) {
 			id := utils.ParseInt(args[0])
 
-			var tasksEdited = tasks.GetByID(id)
+			var tasksEdited = tasks.GetByID(db, id)
 
 			tasksEdited.Completed = true
 
-			fmt.Println(tasks.UpdateByID(id, *tasksEdited))
+			task := tasks.UpdateByID(db, id, *tasksEdited)
+
+			fmt.Printf("La tarea con ID: %d se ha marcado como completada", task.ID)
 		},
 	}
 
@@ -97,7 +105,9 @@ func Execute() {
 		Run: func(cmd *cobra.Command, args []string) {
 			id := utils.ParseInt(args[0])
 
-			tasks.DeleteByID(id)
+			tasks.DeleteByID(db, id)
+
+			fmt.Printf("La tarea con ID: %d se ha eliminado", id)
 		},
 	}
 
