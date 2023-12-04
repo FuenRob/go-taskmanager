@@ -1,6 +1,6 @@
 # Task Manager in Go
 
-## Fisrt Steps
+## First Steps
 
 Install gorm:
 ```
@@ -10,5 +10,5 @@ go get -u gorm.io/driver/mysql
 
 Install Framework cobra:
 ```
-go get -u github.com/spf13/cobra/cobra
+go get -u github.com/spf13/cobra
 ```

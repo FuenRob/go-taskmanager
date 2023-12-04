@@ -10,10 +10,7 @@ type Task struct {
 	Completed   bool
 }
 
-var tasks = []*Task{}
-
 func Add(db *gorm.DB, task Task) *Task {
-	task.ID = len(tasks) + 1
 	task.Completed = false
 	db.Create(&task)
 	return &task
