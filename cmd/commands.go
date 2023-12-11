@@ -35,6 +35,10 @@ func Execute(db *gorm.DB) {
 		Long:  `This command list all tasks.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			tasksList := tasks.GetAll(db)
+			if len(tasksList) == 0 {
+				fmt.Println("No hay tareas por hacer")
+				return
+			}
 			for i := 0; i < len(tasksList); i++ {
 				fmt.Printf("%d - %s (%t)\n", tasksList[i].ID, tasksList[i].Name, tasksList[i].Completed)
 			}
