@@ -3,10 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
+	"strconv"
 	"taskmanager/internal/tasks"
+	UIForm "taskmanager/ui/form"
+	UITable "taskmanager/ui/table"
 	"taskmanager/utils"
 
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 )
@@ -14,18 +17,14 @@ import (
 func Execute(db *gorm.DB) {
 
 	var cmdAdd = &cobra.Command{
-		Use:   "add [string]",
+		Use:   "add",
 		Short: "Command to add a task",
 		Long:  `This command add a task to the task list.`,
-		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var task = tasks.Task{
-				Name: strings.Join(args, " "),
-			}
+			task := UIForm.Create()
 			newTask := tasks.Add(db, task)
 
-			fmt.Printf(`Tarea creada con éxito: %s(%d)`, newTask.Name, task.ID)
-
+			fmt.Printf(`Tarea creada con éxito: %s(%d)`, task.Name, newTask.ID)
 		},
 	}
 
@@ -39,9 +38,21 @@ func Execute(db *gorm.DB) {
 				fmt.Println("No hay tareas por hacer")
 				return
 			}
-			for i := 0; i < len(tasksList); i++ {
-				fmt.Printf("%d - %s (%t)\n", tasksList[i].ID, tasksList[i].Name, tasksList[i].Completed)
+
+			columns := []table.Column{
+				{Title: "ID", Width: 4},
+				{Title: "Nombre", Width: 10},
+				{Title: "Descripción", Width: 20},
+				{Title: "Estado", Width: 10},
 			}
+
+			values := []table.Row{}
+
+			for i := 0; i < len(tasksList); i++ {
+				values = append(values, table.Row{strconv.Itoa(tasksList[i].ID), tasksList[i].Name, tasksList[i].Description, strconv.FormatBool(tasksList[i].Completed)})
+			}
+
+			UITable.Create(columns, values)
 		},
 	}
 
